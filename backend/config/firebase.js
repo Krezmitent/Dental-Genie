@@ -12,38 +12,42 @@ function initializeFirebase() {
   try {
     let credentialParams;
 
-    // Check if environment variables are set (Production / Render)
-    if (process.env.FIREBASE_PROJECT_ID || process.env.FIREBASE_CLIENT_EMAIL || process.env.FIREBASE_PRIVATE_KEY) {
-      if (!process.env.FIREBASE_PROJECT_ID || !process.env.FIREBASE_CLIENT_EMAIL || !process.env.FIREBASE_PRIVATE_KEY) {
-        logger.error(CONTEXT, 'INCOMPLETE ENVIRONMENT VARIABLES! You must set all three: FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, and FIREBASE_PRIVATE_KEY');
+    // Priority 1: Entire service account JSON as a single env var (most reliable for deployment)
+    if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
+      try {
+        credentialParams = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
+        logger.info(CONTEXT, 'Using FIREBASE_SERVICE_ACCOUNT_JSON env var.');
+      } catch (parseError) {
+        logger.error(CONTEXT, 'Failed to parse FIREBASE_SERVICE_ACCOUNT_JSON:', { message: parseError.message });
+        return { db: null, bucket: null, admin: null };
       }
-
-      let privateKey = process.env.FIREBASE_PRIVATE_KEY || '';
-      // Strip surrounding quotes if user accidentally pasted them
+    }
+    // Priority 2: Individual env vars
+    else if (process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY) {
+      let privateKey = process.env.FIREBASE_PRIVATE_KEY;
+      // Strip surrounding quotes if accidentally pasted
       if (privateKey.startsWith('"') && privateKey.endsWith('"')) {
         privateKey = privateKey.slice(1, -1);
       }
-      
-      let clientEmail = process.env.FIREBASE_CLIENT_EMAIL || '';
-      if (clientEmail.startsWith('"') && clientEmail.endsWith('"')) {
-        clientEmail = clientEmail.slice(1, -1);
-      }
+      // Replace escaped newline characters
+      privateKey = privateKey.replace(/\\n/g, '\n');
 
       credentialParams = {
-        projectId: (process.env.FIREBASE_PROJECT_ID || '').replace(/^"|"$/g, ''),
-        clientEmail: clientEmail,
-        // Replace escaped newline characters from environment variable string
-        privateKey: privateKey.replace(/\\n/g, '\n')
+        projectId: process.env.FIREBASE_PROJECT_ID,
+        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+        privateKey: privateKey
       };
-    } 
-    // Fallback to local JSON file (Local Development)
+      logger.info(CONTEXT, 'Using individual Firebase env vars.');
+    }
+    // Priority 3: Local JSON file (Development)
     else {
       const serviceAccountPath = path.join(__dirname, '..', 'firebase-service-account.json');
       if (!fs.existsSync(serviceAccountPath)) {
-        logger.warn(CONTEXT, 'Firebase credentials missing! Neither ENV vars nor firebase-service-account.json found.');
+        logger.warn(CONTEXT, 'Firebase credentials missing! Set FIREBASE_SERVICE_ACCOUNT_JSON env var, or provide firebase-service-account.json locally.');
         return { db: null, bucket: null, admin: null };
       }
       credentialParams = require(serviceAccountPath);
+      logger.info(CONTEXT, 'Using local firebase-service-account.json.');
     }
 
     const storageBucketUrl = process.env.FIREBASE_STORAGE_BUCKET;
