@@ -78,10 +78,10 @@ async function register(req, res) {
       },
     });
   } catch (error) {
-    logger.error(CONTEXT, 'Error during registration.', { message: error.message });
+    logger.error(CONTEXT, 'Error during registration.', { message: error.message, stack: error.stack });
     return res.status(500).json({
       success: false,
-      message: 'An error occurred during registration. Please try again.',
+      message: 'An error occurred during registration. Please try again. Debug: ' + error.message,
     });
   }
 }
@@ -141,10 +141,10 @@ async function login(req, res) {
       },
     });
   } catch (error) {
-    logger.error(CONTEXT, 'Error during login.', { message: error.message });
+    logger.error(CONTEXT, 'Error during login.', { message: error.message, stack: error.stack });
     return res.status(500).json({
       success: false,
-      message: 'An error occurred during login. Please try again.',
+      message: 'An error occurred during login. Please try again. Debug: ' + error.message,
     });
   }
 }
