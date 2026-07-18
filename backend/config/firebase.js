@@ -10,16 +10,31 @@ const CONTEXT = 'config/firebase';
 
 function initializeFirebase() {
   try {
-    const serviceAccountPath = path.join(__dirname, '..', 'firebase-service-account.json');
-    const storageBucketUrl = process.env.FIREBASE_STORAGE_BUCKET;
+    let credentialParams;
 
-    if (!fs.existsSync(serviceAccountPath)) {
-      logger.warn(CONTEXT, 'firebase-service-account.json is missing!');
-      return { db: null, bucket: null, admin: null };
+    // Check if environment variables are set (Production / Render)
+    if (process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY) {
+      credentialParams = {
+        projectId: process.env.FIREBASE_PROJECT_ID,
+        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+        // Replace escaped newline characters from environment variable string
+        privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n')
+      };
+    } 
+    // Fallback to local JSON file (Local Development)
+    else {
+      const serviceAccountPath = path.join(__dirname, '..', 'firebase-service-account.json');
+      if (!fs.existsSync(serviceAccountPath)) {
+        logger.warn(CONTEXT, 'Firebase credentials missing! Neither ENV vars nor firebase-service-account.json found.');
+        return { db: null, bucket: null, admin: null };
+      }
+      credentialParams = require(serviceAccountPath);
     }
 
+    const storageBucketUrl = process.env.FIREBASE_STORAGE_BUCKET;
+
     const app = initializeApp({
-      credential: cert(require(serviceAccountPath)),
+      credential: cert(credentialParams),
       storageBucket: storageBucketUrl || 'your-project-id.appspot.com'
     });
 
