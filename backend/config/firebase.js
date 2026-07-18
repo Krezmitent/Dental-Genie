@@ -13,12 +13,27 @@ function initializeFirebase() {
     let credentialParams;
 
     // Check if environment variables are set (Production / Render)
-    if (process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY) {
+    if (process.env.FIREBASE_PROJECT_ID || process.env.FIREBASE_CLIENT_EMAIL || process.env.FIREBASE_PRIVATE_KEY) {
+      if (!process.env.FIREBASE_PROJECT_ID || !process.env.FIREBASE_CLIENT_EMAIL || !process.env.FIREBASE_PRIVATE_KEY) {
+        logger.error(CONTEXT, 'INCOMPLETE ENVIRONMENT VARIABLES! You must set all three: FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, and FIREBASE_PRIVATE_KEY');
+      }
+
+      let privateKey = process.env.FIREBASE_PRIVATE_KEY || '';
+      // Strip surrounding quotes if user accidentally pasted them
+      if (privateKey.startsWith('"') && privateKey.endsWith('"')) {
+        privateKey = privateKey.slice(1, -1);
+      }
+      
+      let clientEmail = process.env.FIREBASE_CLIENT_EMAIL || '';
+      if (clientEmail.startsWith('"') && clientEmail.endsWith('"')) {
+        clientEmail = clientEmail.slice(1, -1);
+      }
+
       credentialParams = {
-        projectId: process.env.FIREBASE_PROJECT_ID,
-        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+        projectId: (process.env.FIREBASE_PROJECT_ID || '').replace(/^"|"$/g, ''),
+        clientEmail: clientEmail,
         // Replace escaped newline characters from environment variable string
-        privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n')
+        privateKey: privateKey.replace(/\\n/g, '\n')
       };
     } 
     // Fallback to local JSON file (Local Development)
