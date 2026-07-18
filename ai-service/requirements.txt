@@ -1,0 +1,30 @@
+# =============================================================================
+# AI Inference Service - Dependencies
+# =============================================================================
+# Install with: pip install -r requirements.txt
+# =============================================================================
+
+# --- Web Framework ---
+fastapi>=0.115.0
+uvicorn[standard]>=0.34.0
+
+# --- Image Processing ---
+opencv-python-headless>=4.10.0
+numpy>=1.26.0
+Pillow>=11.0.0
+
+# --- Deep Learning ---
+# Note: Using cu118 (CUDA 11.8) or cu121 (CUDA 12.1). If you meant CUDA 12.1 or 11.8, this covers it!
+--extra-index-url https://download.pytorch.org/whl/cu121
+torch>=2.0.0
+ultralytics>=8.0.0
+
+# --- File Handling ---
+python-multipart>=0.0.20
+aiohttp>=3.9.0
+
+# --- Configuration ---
+python-dotenv>=1.0.1
+
+# --- Logging ---
+loguru>=0.7.3
