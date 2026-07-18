@@ -1,110 +1,105 @@
-# Dental Diagnosis & Clinic Management System
+# 🚀 Dental Genie - AI Diagnosis Platform
 
-This is a production-grade, three-tier application built with React, Node.js, and Python (FastAPI) to provide AI-assisted dental diagnosis and clinic management.
+Dental Genie is an AI-powered full-stack platform designed to assist dental professionals in diagnosing pathologies from dental radiographs (X-rays).
 
-## Project Structure
-
-*   `/frontend` - React.js SPA (Vite, Tailwind CSS, Framer Motion)
-*   `/backend` - Node.js REST API (Express, MongoDB, Cloudinary, JWT)
-*   `/ai-service` - Python Inference Engine (FastAPI, YOLOv5)
-
----
-
-## Prerequisites
-
-Before running the application, ensure you have the following installed:
-1.  **Node.js** (v18+)
-2.  **Python** (v3.8+)
-3.  **MongoDB Cloud Account** (or a local MongoDB instance)
-4.  **Cloudinary Account** (for free image hosting)
+This repository is a **Monorepo** consisting of three distinct microservices:
+1. **`frontend/`**: The modern web interface (React + Vite)
+2. **`backend/`**: The API & Database Gateway (Node.js + Express + Firebase + Gemini AI)
+3. **`ai-service/`**: The Core Neural Network Engine (Python + YOLOv11)
 
 ---
 
-## Step 1: Set up the Backend (Node.js)
+## 🛠️ Prerequisites
 
-The backend handles users, authentication, appointments, and orchestrates the AI service.
-
-1.  Open a terminal and navigate to the backend directory:
-    ```bash
-    cd backend
-    npm install
-    ```
-2.  Create a `.env` file in the `backend/` directory with the following variables:
-    ```env
-    PORT=5000
-    MONGO_URI=your_mongodb_connection_string
-    JWT_SECRET=your_super_secret_jwt_key_123
-    
-    # Get these from your Cloudinary Dashboard
-    CLOUDINARY_CLOUD_NAME=your_cloud_name
-    CLOUDINARY_API_KEY=your_api_key
-    CLOUDINARY_API_SECRET=your_api_secret
-    
-    # The URL where the Python AI service will run
-    AI_SERVICE_URL=http://127.0.0.1:8000
-    ```
-3.  Start the backend server:
-    ```bash
-    npm run dev
-    ```
+Before you start, make sure you have the following installed:
+- **Node.js** (v18 or higher)
+- **Python** (3.8 or higher)
+- A **Firebase** Account (for Authentication and Database)
+- A **Google Gemini API Key** (for dynamic AI PDF Summaries)
 
 ---
 
-## Step 2: Set up the AI Service (Python/FastAPI)
+## 🔒 Environment Setup
 
-The AI service receives image URLs from the backend, downloads them, and runs them through a YOLOv5 model.
+**WARNING: NEVER COMMIT SECRETS TO GITHUB.** 
+This repository contains a root `.gitignore` to prevent secret leakage, but always double-check.
 
-1.  Open a **new** terminal and navigate to the AI service directory:
-    ```bash
-    cd ai-service
-    ```
-2.  Create and activate a virtual environment (recommended):
-    ```bash
-    python -m venv venv
-    
-    # Windows:
-    .\venv\Scripts\activate
-    # Mac/Linux:
-    # source venv/bin/activate
-    ```
-3.  Install the dependencies:
-    ```bash
-    pip install -r requirements.txt
-    ```
-4.  **Regarding the ML Model:**
-    *   **Demo Mode (No download required):** By default, if the system doesn't find a model file, it will safely run in "Demo Mode", returning highly realistic mock predictions so you can test the frontend UI without needing a 200MB model file.
-    *   **Production Mode:** To use real AI, download a trained YOLOv5 PyTorch weights file and place it at `ai-service/models/best.pt`.
-5.  Start the FastAPI server:
-    ```bash
-    uvicorn main:app --reload --port 8000
-    ```
+### 1. Backend Environment (`backend/.env`)
+Create a file named `.env` inside the `backend/` folder:
+```env
+PORT=5000
+AI_SERVICE_URL=http://127.0.0.1:8000
+FIREBASE_PROJECT_ID=your-project-id
+FIREBASE_CLIENT_EMAIL=your-service-account-email
+FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nYour-Key-Here\n-----END PRIVATE KEY-----"
+GEMINI_API_KEY=your_gemini_api_key
+```
+*(Alternatively, place your `firebase-service-account.json` in the `backend/` folder. It is ignored by Git by default).*
+
+### 2. Frontend Environment (`frontend/.env`)
+Create a file named `.env` inside the `frontend/` folder:
+```env
+VITE_API_BASE_URL=http://localhost:5000/api
+```
 
 ---
 
-## Step 3: Set up the Frontend (React/Vite)
+## 🚀 Running the Project Locally
 
-The frontend is the UI for Patients, Dentists, and Admins.
+You will need to open **three separate terminals**, one for each microservice.
 
-1.  Open a **third** terminal and navigate to the frontend directory:
-    ```bash
-    cd frontend
-    npm install
-    ```
-2.  Create a `.env` file in the `frontend/` directory:
-    ```env
-    VITE_API_URL=http://localhost:5000/api
-    ```
-3.  Start the React development server:
-    ```bash
-    npm run dev
-    ```
-4.  Open your browser to the URL provided by Vite (usually `http://localhost:5173`).
+### Terminal 1: AI Service (Python)
+The AI service runs the object detection model.
+```bash
+cd ai-service
+# 1. Create a virtual environment
+python -m venv venv
+
+# 2. Activate it (Windows)
+.\venv\Scripts\activate
+# (Mac/Linux: source venv/bin/activate)
+
+# 3. Install requirements
+pip install -r requirements.txt
+
+# 4. Start the server
+python app.py
+```
+*The AI service will run on `http://127.0.0.1:8000`*
+
+### Terminal 2: Backend (Node.js)
+The backend manages data, handles file uploads, and coordinates with the AI.
+```bash
+cd backend
+# 1. Install dependencies
+npm install
+
+# 2. Start the server
+npm run dev
+# (or node server.js)
+```
+*The Backend API will run on `http://localhost:5000`*
+
+### Terminal 3: Frontend (React)
+The frontend provides the interactive user dashboard.
+```bash
+cd frontend
+# 1. Install dependencies
+npm install
+
+# 2. Start the development server
+npm run dev
+```
+*The Frontend will be accessible at `http://localhost:5173` (or the port Vite provides).*
 
 ---
 
-## Testing the Flow
+## 📖 Deployment
 
-1.  Go to the frontend and **Register** as a `Patient`.
-2.  Log in and navigate to the **AI Diagnosis** page.
-3.  Upload an image (any JPEG/PNG). 
-4.  The React app will send the image to Node.js -> Node.js uploads it to Cloudinary -> Node.js sends the Cloudinary URL to FastAPI -> FastAPI processes it and returns bounding boxes -> Node.js saves the report to MongoDB -> React polls and displays the results!
+Because this is a Monorepo, you do **not** need to split these folders into different repositories. You can deploy this exact repository directly:
+
+1. **Frontend**: Deploy to **Vercel** (Set Root Directory to `frontend`)
+2. **Backend**: Deploy to **Render** (Set Root Directory to `backend`)
+3. **AI Service**: Deploy to **Render** or **Google Cloud Run** (Set Root Directory to `ai-service`)
+
+*For full deployment instructions, refer to the included `deployment_guide.md`.*
