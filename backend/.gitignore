@@ -5,7 +5,7 @@ node_modules/
 .env
 .env.*
 *credentials*.json
-*service-account*.json
+firebase-service-account.json
 firebase-*.json
 *.pem
 
