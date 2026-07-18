@@ -12,8 +12,19 @@ function initializeFirebase() {
   try {
     let credentialParams;
 
-    // Priority 1: Entire service account JSON as a single env var (most reliable for deployment)
-    if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
+    // Priority 1: Base64-encoded service account (most reliable - immune to escaping issues)
+    if (process.env.FIREBASE_SERVICE_ACCOUNT_BASE64) {
+      try {
+        const decoded = Buffer.from(process.env.FIREBASE_SERVICE_ACCOUNT_BASE64, 'base64').toString('utf-8');
+        credentialParams = JSON.parse(decoded);
+        logger.info(CONTEXT, 'Using FIREBASE_SERVICE_ACCOUNT_BASE64 env var.');
+      } catch (parseError) {
+        logger.error(CONTEXT, 'Failed to parse FIREBASE_SERVICE_ACCOUNT_BASE64:', { message: parseError.message });
+        return { db: null, bucket: null, admin: null };
+      }
+    }
+    // Priority 2: Entire service account JSON as a single env var
+    else if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
       try {
         credentialParams = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
         logger.info(CONTEXT, 'Using FIREBASE_SERVICE_ACCOUNT_JSON env var.');
